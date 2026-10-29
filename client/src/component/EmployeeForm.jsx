@@ -213,6 +213,8 @@ const EmployeeForm = ({ onSuccess, onCancel, initialData }) => {
                 type="text"
                 name="firstName"
                 defaultValue={initialData?.firstName}
+
+                
                 className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
@@ -482,7 +484,7 @@ const EmployeeForm = ({ onSuccess, onCancel, initialData }) => {
               <input
                 name="userName"
                 type="text"
-                defaultValue={initialData?.userId?.username}
+                defaultValue={initialData?.userId?.userName}
                 className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
               />
 

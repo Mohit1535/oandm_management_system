@@ -57,7 +57,7 @@ const SiteForm = ({ onCancel, onSuccess, loading }) => {
                 </h2>
 
                 <Sparkles
-                  size={18}
+                  size={18} 
                   className="text-yellow-200"
                 />
               </div>

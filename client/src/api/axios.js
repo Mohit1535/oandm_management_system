@@ -1,31 +1,24 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL:
-    (import.meta.env.VITE_BASE_URL ||
-      "http://localhost:4000") + "/api",
+baseURL:
+import.meta.env.VITE_BASE_URL ||
+"https://sundigo.sundigosewasamiti.in/api",
 });
 
-
-// ================= REQUEST INTERCEPTOR =================
-
+// Request Interceptor
 api.interceptors.request.use(
-  (config) => {
+(config) => {
+const token = localStorage.getItem("token");
 
-    const token = localStorage.getItem("token");
+if (token) {
+  config.headers.Authorization = `Bearer ${token}`;
+}
 
-    if (token) {
-      config.headers.Authorization =
-        `Bearer ${token}`;
-    }
+return config;
 
-    return config;
-  },
-
-  (error) => {
-    return Promise.reject(error);
-  }
+},
+(error) => Promise.reject(error)
 );
-
 
 export default api;

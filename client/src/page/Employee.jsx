@@ -54,7 +54,7 @@ const Employee = () => {
   const fetchSites = useCallback(async () => {
     try {
       const res = await api.get("/sites");
-
+ 
       setSites(res.data);
     } catch (error) {
       toast.error(
@@ -62,7 +62,7 @@ const Employee = () => {
       );
     }
   }, []);
-
+               
   // =========================
   // FETCH BRANCHES
   // =========================

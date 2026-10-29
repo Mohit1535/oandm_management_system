@@ -2,18 +2,15 @@ import mongoose from "mongoose";
 
 const utrSchema = new mongoose.Schema(
   {
-    firstName: {
-      type: String,
-      required: true,
-    },
+employeeId:{
+  type:mongoose.Schema.Types.ObjectId,
+  ref:"Employee",
+  required:true
+},
 
-    lastName: {
-      type: String,
-      required: true,
-    },
 
     month: {
-      type: Date,
+      type: String,
       required: true,
     },
 

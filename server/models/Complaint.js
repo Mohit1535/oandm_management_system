@@ -1,17 +1,10 @@
 import mongoose from "mongoose";
-import { branchName, Sites } from "../../client/src/assets.js";
 
 const complaintSchema = new mongoose.Schema(
   {
-    sites: {
-      type: String,
-      enum: Sites,
-      required: true,
-    },
-
-    branchName: {
-      type: String,
-      enum: branchName,
+    employeeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
       required: true,
     },
 
@@ -25,23 +18,36 @@ const complaintSchema = new mongoose.Schema(
       required: true,
     },
 
+    sites: {
+      type: [String],
+      required: true,
+    },
+
+    branchName: {
+      type: [String],
+      required: true,
+    },
+
     description: {
       type: String,
       required: true,
     },
 
-    image: {
-      type: String, // Store image URL or file path
-      required: true,
+    attachment: {
+      type: String,
+      default: "",
+    },
+
+    status: {
+      type: String,
+      default: "Pending",
     },
   },
   {
     timestamps: true,
   }
 );
-
 const Complaint =
-  mongoose.models.Complaint ||
-  mongoose.model("Complaint", complaintSchema);
+  mongoose.models.Complaint || mongoose.model("Complaint", complaintSchema);
 
 export default Complaint;

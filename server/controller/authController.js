@@ -6,11 +6,15 @@ import jwt from "jsonwebtoken";
 
 export const login = async (req, res) => {
   try {
+    console.log("========== LOGIN ==========");
     console.log("LOGIN BODY:", req.body);
+ 
+    let { userName, password, role } = req.body;
 
-    const { userName, password, role } = req.body;
+    // ============================================
+    // VALIDATION
+    // ============================================
 
-    // Check required fields
     if (!userName || !password || !role) {
       return res.status(400).json({
         success: false,
@@ -18,46 +22,93 @@ export const login = async (req, res) => {
       });
     }
 
-    // Find user by username
-    const user = await User.findOne({ userName });
+    // ============================================
+    // NORMALIZE
+    // ============================================
+
+    userName = userName.trim().toLowerCase();
+    role = role.trim().toUpperCase();
+
+    console.log("Username:", userName);
+    console.log("Role:", role);
+
+    // ============================================
+    // FIND USER
+    // ============================================
+
+    const user = await User.findOne({
+      userName,
+    });
+
+    console.log(
+      "USER FOUND:",
+      user
+        ? {
+            id: user._id.toString(),
+            userName: user.userName,
+            role: user.role,
+          }
+        : null
+    );
 
     if (!user) {
+      console.log("❌ USER NOT FOUND");
+
       return res.status(401).json({
         success: false,
         error: "Invalid username or password",
       });
     }
 
-    // Check role
+    // ============================================
+    // CHECK ROLE
+    // ============================================
+
+    console.log("Database role:", user.role);
+    console.log("Requested role:", role);
+
     if (user.role !== role) {
+      console.log("❌ ROLE MISMATCH");
+
       return res.status(401).json({
         success: false,
         error: "Invalid role",
       });
     }
 
-    // Check password
+    // ============================================
+    // CHECK PASSWORD
+    // ============================================
+
     const isPasswordValid = await bcrypt.compare(
       password,
       user.password
     );
 
+    console.log(
+      "PASSWORD VALID:",
+      isPasswordValid
+    );
+
     if (!isPasswordValid) {
+      console.log("❌ PASSWORD DOES NOT MATCH");
+
       return res.status(401).json({
         success: false,
         error: "Invalid username or password",
       });
     }
 
-    // Create JWT payload
+    // ============================================
+    // CREATE JWT
+    // ============================================
+
     const payload = {
-      userId: user._id,
+      userId: user._id.toString(),
       userName: user.userName,
       role: user.role,
-      password:user.password
     };
 
-    // Create token
     const token = jwt.sign(
       payload,
       process.env.JWT_SECRET,
@@ -66,7 +117,8 @@ export const login = async (req, res) => {
       }
     );
 
-    // Send response
+    console.log("✅ LOGIN SUCCESS");
+
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -75,7 +127,7 @@ export const login = async (req, res) => {
     });
 
   } catch (error) {
-    console.log("LOGIN ERROR:", error);
+    console.error("❌ LOGIN ERROR:", error);
 
     return res.status(500).json({
       success: false,
@@ -83,7 +135,6 @@ export const login = async (req, res) => {
     });
   }
 };
-
 
 // ================= SESSION =================
 
@@ -93,9 +144,8 @@ export const session = async (req, res) => {
       success: true,
       user: req.session,
     });
-
   } catch (error) {
-    console.log("SESSION ERROR:", error);
+    console.error("SESSION ERROR:", error);
 
     return res.status(500).json({
       success: false,
@@ -104,21 +154,26 @@ export const session = async (req, res) => {
   }
 };
 
-
 // ================= CHANGE PASSWORD =================
 
 export const changePassword = async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const {
+      currentPassword,
+      newPassword,
+    } = req.body;
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         success: false,
-        error: "Current password and new password are required",
+        error:
+          "Current password and new password are required",
       });
     }
 
-    const user = await User.findById(req.session.userId);
+    const user = await User.findById(
+      req.session.userId
+    );
 
     if (!user) {
       return res.status(404).json({
@@ -127,11 +182,11 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Check current password
-    const isPasswordValid = await bcrypt.compare(
-      currentPassword,
-      user.password
-    );
+    const isPasswordValid =
+      await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -140,13 +195,10 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(
+    user.password = await bcrypt.hash(
       newPassword,
       10
     );
-
-    user.password = hashedPassword;
 
     await user.save();
 
@@ -156,7 +208,10 @@ export const changePassword = async (req, res) => {
     });
 
   } catch (error) {
-    console.log("CHANGE PASSWORD ERROR:", error);
+    console.error(
+      "CHANGE PASSWORD ERROR:",
+      error
+    );
 
     return res.status(500).json({
       success: false,

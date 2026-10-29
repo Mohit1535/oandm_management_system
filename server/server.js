@@ -1,7 +1,8 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import connectDB from "./config/db.js";
 
@@ -15,52 +16,81 @@ import siteRouter from "./routes/SiteRoute.js";
 import utrRouter from "./routes/UtrRoute.js";
 
 const app = express();
-
 const PORT = process.env.PORT || 4000;
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// ================= MIDDLEWARE =================
-
-app.use(cors());
+// Middleware
+app.use(
+cors({
+origin: process.env.FRONTEND_URL || true,
+credentials: true,
+})
+);
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use(multer().none());
+// Upload directory: uploads folder beside server.js
+const uploadDirectory = path.join(__dirname, "uploads");
 
+console.log("Server directory:", __dirname);
+console.log("Uploads directory:", uploadDirectory);
 
-// ================= TEST =================
+// Serve uploaded files
+app.use("/uploads", express.static(uploadDirectory));
+app.use("/api/uploads", express.static(uploadDirectory));
+
+// Health-check routes
+app.get("/", (req, res) => {
+res.status(200).json({
+success: true,
+message: "O&M API server is running",
+});
+});
 
 app.get("/", (req, res) => {
-  res.send("Server is running");
+res.status(200).json({
+success: true,
+message: "O&M API is running",
+});
 });
 
+// Upload route test
+app.get("/api/uploads-test", (req, res) => {
+res.status(200).json({
+success: true,
+message: "Node.js upload route is working",
+uploadDirectory,
+});
+});
 
-// ================= ROUTES =================
-
+// API routes
 app.use("/api/employees", employeeRouter);
-
 app.use("/api/auth", authRouter);
-
-app.use("/api/complaint", complaintRouter);
-
+app.use("/api/complaints", complaintRouter);
 app.use("/api/profile", profileRouter);
-
 app.use("/api/dashboard", dashboardRouter);
-
 app.use("/api/sites", siteRouter);
-
 app.use("/api/branch", branchRouter);
-
 app.use("/api/utr", utrRouter);
 
-
-// ================= DATABASE =================
-
+// Start server
+async function startServer() {
+try {
 await connectDB();
 
-
-// ================= SERVER =================
-
 app.listen(PORT, () => {
-  console.log(`Server is running on ${PORT}`);
+  console.log(`O&M server is running on port ${PORT}`);
 });
+
+} catch (error) {
+console.error("Failed to start server:", error);
+process.exit(1);
+}
+}
+
+startServer();
+
+export default app
